@@ -141,6 +141,9 @@ service ControlService {
 
   // 手工指定：将目标备节点切换为 Master（SwitchType=MANUAL）。
   rpc RequestManualElect(ManualElectRequest) returns (ManualElectResponse);
+
+  // 反向映射：请求某个节点在本地启动监听，并把入站连接通过隧道转发到 target_node_id。
+  rpc StartRemoteListen(RemoteListenRequest) returns (RemoteListenResponse);
 }
 
 service TunnelService {

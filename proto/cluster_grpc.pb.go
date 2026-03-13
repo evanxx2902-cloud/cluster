@@ -119,6 +119,7 @@ var ElectionService_ServiceDesc = grpc.ServiceDesc{
 const (
 	ControlService_SubscribeCluster_FullMethodName   = "/cluster.v1.ControlService/SubscribeCluster"
 	ControlService_RequestManualElect_FullMethodName = "/cluster.v1.ControlService/RequestManualElect"
+	ControlService_StartRemoteListen_FullMethodName  = "/cluster.v1.ControlService/StartRemoteListen"
 )
 
 // ControlServiceClient is the client API for ControlService service.
@@ -129,6 +130,8 @@ type ControlServiceClient interface {
 	SubscribeCluster(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ClusterEvent], error)
 	// 手工指定：将目标备节点切换为 Master（SwitchType=MANUAL）。
 	RequestManualElect(ctx context.Context, in *ManualElectRequest, opts ...grpc.CallOption) (*ManualElectResponse, error)
+	// 反向映射：请求某个节点在本地启动监听，并把入站连接通过隧道转发到 target_node_id。
+	StartRemoteListen(ctx context.Context, in *RemoteListenRequest, opts ...grpc.CallOption) (*RemoteListenResponse, error)
 }
 
 type controlServiceClient struct {
@@ -168,6 +171,16 @@ func (c *controlServiceClient) RequestManualElect(ctx context.Context, in *Manua
 	return out, nil
 }
 
+func (c *controlServiceClient) StartRemoteListen(ctx context.Context, in *RemoteListenRequest, opts ...grpc.CallOption) (*RemoteListenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoteListenResponse)
+	err := c.cc.Invoke(ctx, ControlService_StartRemoteListen_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ControlServiceServer is the server API for ControlService service.
 // All implementations must embed UnimplementedControlServiceServer
 // for forward compatibility.
@@ -176,6 +189,8 @@ type ControlServiceServer interface {
 	SubscribeCluster(*SubscribeRequest, grpc.ServerStreamingServer[ClusterEvent]) error
 	// 手工指定：将目标备节点切换为 Master（SwitchType=MANUAL）。
 	RequestManualElect(context.Context, *ManualElectRequest) (*ManualElectResponse, error)
+	// 反向映射：请求某个节点在本地启动监听，并把入站连接通过隧道转发到 target_node_id。
+	StartRemoteListen(context.Context, *RemoteListenRequest) (*RemoteListenResponse, error)
 	mustEmbedUnimplementedControlServiceServer()
 }
 
@@ -191,6 +206,9 @@ func (UnimplementedControlServiceServer) SubscribeCluster(*SubscribeRequest, grp
 }
 func (UnimplementedControlServiceServer) RequestManualElect(context.Context, *ManualElectRequest) (*ManualElectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestManualElect not implemented")
+}
+func (UnimplementedControlServiceServer) StartRemoteListen(context.Context, *RemoteListenRequest) (*RemoteListenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartRemoteListen not implemented")
 }
 func (UnimplementedControlServiceServer) mustEmbedUnimplementedControlServiceServer() {}
 func (UnimplementedControlServiceServer) testEmbeddedByValue()                        {}
@@ -242,6 +260,24 @@ func _ControlService_RequestManualElect_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControlService_StartRemoteListen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoteListenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServiceServer).StartRemoteListen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControlService_StartRemoteListen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServiceServer).StartRemoteListen(ctx, req.(*RemoteListenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ControlService_ServiceDesc is the grpc.ServiceDesc for ControlService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -252,6 +288,10 @@ var ControlService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RequestManualElect",
 			Handler:    _ControlService_RequestManualElect_Handler,
+		},
+		{
+			MethodName: "StartRemoteListen",
+			Handler:    _ControlService_StartRemoteListen_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

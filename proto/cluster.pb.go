@@ -903,6 +903,138 @@ func (*TunnelFrame_Data) isTunnelFrame_Kind() {}
 
 func (*TunnelFrame_Close) isTunnelFrame_Kind() {}
 
+// 可选：用于“反向映射”的控制面 RPC（哪个节点在本地开始监听）。
+type RemoteListenRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	MappingId string                 `protobuf:"bytes,2,opt,name=mapping_id,json=mappingId,proto3" json:"mapping_id,omitempty"`
+	// 由哪个节点来承接转发（也就是把连接隧道到哪个节点的 TunnelService）。
+	TargetNodeId string `protobuf:"bytes,3,opt,name=target_node_id,json=targetNodeId,proto3" json:"target_node_id,omitempty"`
+	// 在“当前 RPC 所在节点”上监听的端点。
+	Listen *TunnelEndpoint `protobuf:"bytes,4,opt,name=listen,proto3" json:"listen,omitempty"`
+	// 在 target_node_id 节点上需要 dial 的目标端点。
+	Target        *TunnelEndpoint `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoteListenRequest) Reset() {
+	*x = RemoteListenRequest{}
+	mi := &file_proto_cluster_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoteListenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoteListenRequest) ProtoMessage() {}
+
+func (x *RemoteListenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_cluster_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoteListenRequest.ProtoReflect.Descriptor instead.
+func (*RemoteListenRequest) Descriptor() ([]byte, []int) {
+	return file_proto_cluster_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RemoteListenRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *RemoteListenRequest) GetMappingId() string {
+	if x != nil {
+		return x.MappingId
+	}
+	return ""
+}
+
+func (x *RemoteListenRequest) GetTargetNodeId() string {
+	if x != nil {
+		return x.TargetNodeId
+	}
+	return ""
+}
+
+func (x *RemoteListenRequest) GetListen() *TunnelEndpoint {
+	if x != nil {
+		return x.Listen
+	}
+	return nil
+}
+
+func (x *RemoteListenRequest) GetTarget() *TunnelEndpoint {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+type RemoteListenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoteListenResponse) Reset() {
+	*x = RemoteListenResponse{}
+	mi := &file_proto_cluster_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoteListenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoteListenResponse) ProtoMessage() {}
+
+func (x *RemoteListenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_cluster_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoteListenResponse.ProtoReflect.Descriptor instead.
+func (*RemoteListenResponse) Descriptor() ([]byte, []int) {
+	return file_proto_cluster_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RemoteListenResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+func (x *RemoteListenResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_proto_cluster_proto protoreflect.FileDescriptor
 
 const file_proto_cluster_proto_rawDesc = "" +
@@ -959,7 +1091,18 @@ const file_proto_cluster_proto_rawDesc = "" +
 	" \x01(\v2\x16.cluster.v1.TunnelOpenH\x00R\x04open\x12\x14\n" +
 	"\x04data\x18\v \x01(\fH\x00R\x04data\x12\x16\n" +
 	"\x05close\x18\f \x01(\bH\x00R\x05closeB\x06\n" +
-	"\x04kind*f\n" +
+	"\x04kind\"\xe1\x01\n" +
+	"\x13RemoteListenRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x1d\n" +
+	"\n" +
+	"mapping_id\x18\x02 \x01(\tR\tmappingId\x12$\n" +
+	"\x0etarget_node_id\x18\x03 \x01(\tR\ftargetNodeId\x122\n" +
+	"\x06listen\x18\x04 \x01(\v2\x1a.cluster.v1.TunnelEndpointR\x06listen\x122\n" +
+	"\x06target\x18\x05 \x01(\v2\x1a.cluster.v1.TunnelEndpointR\x06target\"@\n" +
+	"\x14RemoteListenResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage*f\n" +
 	"\bNodeRole\x12\x19\n" +
 	"\x15NODE_ROLE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10NODE_ROLE_MASTER\x10\x01\x12\x14\n" +
@@ -984,10 +1127,11 @@ const file_proto_cluster_proto_rawDesc = "" +
 	"\x18TUNNEL_DIRECTION_FORWARD\x10\x01\x12\x1c\n" +
 	"\x18TUNNEL_DIRECTION_REVERSE\x10\x022`\n" +
 	"\x0fElectionService\x12M\n" +
-	"\tHeartbeat\x12\x1d.cluster.v1.ElectionHeartbeat\x1a\x1d.cluster.v1.ElectionHeartbeat(\x010\x012\xb5\x01\n" +
+	"\tHeartbeat\x12\x1d.cluster.v1.ElectionHeartbeat\x1a\x1d.cluster.v1.ElectionHeartbeat(\x010\x012\x8d\x02\n" +
 	"\x0eControlService\x12L\n" +
 	"\x10SubscribeCluster\x12\x1c.cluster.v1.SubscribeRequest\x1a\x18.cluster.v1.ClusterEvent0\x01\x12U\n" +
-	"\x12RequestManualElect\x12\x1e.cluster.v1.ManualElectRequest\x1a\x1f.cluster.v1.ManualElectResponse2S\n" +
+	"\x12RequestManualElect\x12\x1e.cluster.v1.ManualElectRequest\x1a\x1f.cluster.v1.ManualElectResponse\x12V\n" +
+	"\x11StartRemoteListen\x12\x1f.cluster.v1.RemoteListenRequest\x1a .cluster.v1.RemoteListenResponse2S\n" +
 	"\rTunnelService\x12B\n" +
 	"\n" +
 	"OpenTunnel\x12\x17.cluster.v1.TunnelFrame\x1a\x17.cluster.v1.TunnelFrame(\x010\x01B\x19Z\x17cluster/proto;clusterpbb\x06proto3"
@@ -1005,22 +1149,24 @@ func file_proto_cluster_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_cluster_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_cluster_proto_goTypes = []any{
-	(NodeRole)(0),               // 0: cluster.v1.NodeRole
-	(SwitchType)(0),             // 1: cluster.v1.SwitchType
-	(ClusterEventType)(0),       // 2: cluster.v1.ClusterEventType
-	(TunnelNetwork)(0),          // 3: cluster.v1.TunnelNetwork
-	(TunnelDirection)(0),        // 4: cluster.v1.TunnelDirection
-	(*NodeState)(nil),           // 5: cluster.v1.NodeState
-	(*ElectionHeartbeat)(nil),   // 6: cluster.v1.ElectionHeartbeat
-	(*SubscribeRequest)(nil),    // 7: cluster.v1.SubscribeRequest
-	(*ClusterEvent)(nil),        // 8: cluster.v1.ClusterEvent
-	(*ManualElectRequest)(nil),  // 9: cluster.v1.ManualElectRequest
-	(*ManualElectResponse)(nil), // 10: cluster.v1.ManualElectResponse
-	(*TunnelEndpoint)(nil),      // 11: cluster.v1.TunnelEndpoint
-	(*TunnelOpen)(nil),          // 12: cluster.v1.TunnelOpen
-	(*TunnelFrame)(nil),         // 13: cluster.v1.TunnelFrame
+	(NodeRole)(0),                // 0: cluster.v1.NodeRole
+	(SwitchType)(0),              // 1: cluster.v1.SwitchType
+	(ClusterEventType)(0),        // 2: cluster.v1.ClusterEventType
+	(TunnelNetwork)(0),           // 3: cluster.v1.TunnelNetwork
+	(TunnelDirection)(0),         // 4: cluster.v1.TunnelDirection
+	(*NodeState)(nil),            // 5: cluster.v1.NodeState
+	(*ElectionHeartbeat)(nil),    // 6: cluster.v1.ElectionHeartbeat
+	(*SubscribeRequest)(nil),     // 7: cluster.v1.SubscribeRequest
+	(*ClusterEvent)(nil),         // 8: cluster.v1.ClusterEvent
+	(*ManualElectRequest)(nil),   // 9: cluster.v1.ManualElectRequest
+	(*ManualElectResponse)(nil),  // 10: cluster.v1.ManualElectResponse
+	(*TunnelEndpoint)(nil),       // 11: cluster.v1.TunnelEndpoint
+	(*TunnelOpen)(nil),           // 12: cluster.v1.TunnelOpen
+	(*TunnelFrame)(nil),          // 13: cluster.v1.TunnelFrame
+	(*RemoteListenRequest)(nil),  // 14: cluster.v1.RemoteListenRequest
+	(*RemoteListenResponse)(nil), // 15: cluster.v1.RemoteListenResponse
 }
 var file_proto_cluster_proto_depIdxs = []int32{
 	0,  // 0: cluster.v1.NodeState.role:type_name -> cluster.v1.NodeRole
@@ -1033,19 +1179,23 @@ var file_proto_cluster_proto_depIdxs = []int32{
 	4,  // 7: cluster.v1.TunnelOpen.direction:type_name -> cluster.v1.TunnelDirection
 	11, // 8: cluster.v1.TunnelOpen.target:type_name -> cluster.v1.TunnelEndpoint
 	12, // 9: cluster.v1.TunnelFrame.open:type_name -> cluster.v1.TunnelOpen
-	6,  // 10: cluster.v1.ElectionService.Heartbeat:input_type -> cluster.v1.ElectionHeartbeat
-	7,  // 11: cluster.v1.ControlService.SubscribeCluster:input_type -> cluster.v1.SubscribeRequest
-	9,  // 12: cluster.v1.ControlService.RequestManualElect:input_type -> cluster.v1.ManualElectRequest
-	13, // 13: cluster.v1.TunnelService.OpenTunnel:input_type -> cluster.v1.TunnelFrame
-	6,  // 14: cluster.v1.ElectionService.Heartbeat:output_type -> cluster.v1.ElectionHeartbeat
-	8,  // 15: cluster.v1.ControlService.SubscribeCluster:output_type -> cluster.v1.ClusterEvent
-	10, // 16: cluster.v1.ControlService.RequestManualElect:output_type -> cluster.v1.ManualElectResponse
-	13, // 17: cluster.v1.TunnelService.OpenTunnel:output_type -> cluster.v1.TunnelFrame
-	14, // [14:18] is the sub-list for method output_type
-	10, // [10:14] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	11, // 10: cluster.v1.RemoteListenRequest.listen:type_name -> cluster.v1.TunnelEndpoint
+	11, // 11: cluster.v1.RemoteListenRequest.target:type_name -> cluster.v1.TunnelEndpoint
+	6,  // 12: cluster.v1.ElectionService.Heartbeat:input_type -> cluster.v1.ElectionHeartbeat
+	7,  // 13: cluster.v1.ControlService.SubscribeCluster:input_type -> cluster.v1.SubscribeRequest
+	9,  // 14: cluster.v1.ControlService.RequestManualElect:input_type -> cluster.v1.ManualElectRequest
+	14, // 15: cluster.v1.ControlService.StartRemoteListen:input_type -> cluster.v1.RemoteListenRequest
+	13, // 16: cluster.v1.TunnelService.OpenTunnel:input_type -> cluster.v1.TunnelFrame
+	6,  // 17: cluster.v1.ElectionService.Heartbeat:output_type -> cluster.v1.ElectionHeartbeat
+	8,  // 18: cluster.v1.ControlService.SubscribeCluster:output_type -> cluster.v1.ClusterEvent
+	10, // 19: cluster.v1.ControlService.RequestManualElect:output_type -> cluster.v1.ManualElectResponse
+	15, // 20: cluster.v1.ControlService.StartRemoteListen:output_type -> cluster.v1.RemoteListenResponse
+	13, // 21: cluster.v1.TunnelService.OpenTunnel:output_type -> cluster.v1.TunnelFrame
+	17, // [17:22] is the sub-list for method output_type
+	12, // [12:17] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_proto_cluster_proto_init() }
@@ -1064,7 +1214,7 @@ func file_proto_cluster_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_cluster_proto_rawDesc), len(file_proto_cluster_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   3,
 		},
