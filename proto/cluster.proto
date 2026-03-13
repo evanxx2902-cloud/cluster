@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package cluster.v1;
+
+option go_package = "cluster/proto;clusterpb";
+
+// 角色：Master / Backup / Slave
+enum NodeRole {
+  NODE_ROLE_UNSPECIFIED = 0;
+  NODE_ROLE_MASTER = 1;
+  NODE_ROLE_BACKUP = 2;
+  NODE_ROLE_SLAVE = 3;
+}
+
+// 切换类型：0 超时切换，1 故障切换，2 手工指定
+enum SwitchType {
+  SWITCH_TYPE_TIMEOUT = 0;
+  SWITCH_TYPE_FAILOVER = 1;
+  SWITCH_TYPE_MANUAL = 2;
+}
+
+message NodeState {
+  string cluster_id = 1;
+  string node_id = 2;
+  string addr = 3; // gRPC 监听地址（host:port）
+
+  NodeRole role = 4;
+
+  uint64 term = 5;
+  int32 priority = 6;
+  SwitchType switch_type = 7;
+
+  int64 last_seen_unix_ms = 8;
+}
+
+message ElectionHeartbeat {
+  string cluster_id = 1;
+  NodeState from = 2;
+  int64 timestamp_unix_ms = 3;
+}
+
+message SubscribeRequest {
+  string cluster_id = 1;
+  string node_id = 2;
+}
+
+enum ClusterEventType {
+  CLUSTER_EVENT_TYPE_UNSPECIFIED = 0;
+  CLUSTER_EVENT_TYPE_FULL_STATE = 1;
+  CLUSTER_EVENT_TYPE_DELTA = 2;
+  CLUSTER_EVENT_TYPE_LEADER_CHANGED = 3;
+}
+
+message ClusterEvent {
+  string cluster_id = 1;
+  ClusterEventType type = 2;
+  repeated NodeState states = 3;
+  NodeState leader = 4;
+  uint64 term = 5;
+  int64 timestamp_unix_ms = 6;
+}
+
+message ManualElectRequest {
+  string cluster_id = 1;
+  string target_node_id = 2;
+}
+
+message ManualElectResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+// ===== Tunnel =====
+
+enum TunnelNetwork {
+  TUNNEL_NETWORK_UNSPECIFIED = 0;
+  TUNNEL_NETWORK_TCP = 1;
+  TUNNEL_NETWORK_UNIX = 2;
+}
+
+enum TunnelDirection {
+  TUNNEL_DIRECTION_UNSPECIFIED = 0;
+  // FORWARD：本地监听 -> 远程 dial(target)
+  TUNNEL_DIRECTION_FORWARD = 1;
+  // REVERSE：远程监听 -> 本地 dial(target)
+  TUNNEL_DIRECTION_REVERSE = 2;
+}
+
+message TunnelEndpoint {
+  TunnelNetwork network = 1;
+  string address = 2; // tcp: host:port, unix: /path/to.sock
+}
+
+message TunnelOpen {
+  string tunnel_id = 1;
+  TunnelDirection direction = 2;
+
+  // 远端需要 dial 的目标端点（由发起端决定）
+  TunnelEndpoint target = 3;
+}
+
+message TunnelFrame {
+  string tunnel_id = 1;
+  uint64 seq = 2;
+
+  oneof kind {
+    TunnelOpen open = 10;
+    bytes data = 11;
+    bool close = 12;
+  }
+}
+
+// 可选：用于“反向映射”的控制面 RPC（哪个节点在本地开始监听）。
+message RemoteListenRequest {
+  string cluster_id = 1;
+  string mapping_id = 2;
+
+  // 由哪个节点来承接转发（也就是把连接隧道到哪个节点的 TunnelService）。
+  string target_node_id = 3;
+
+  // 在“当前 RPC 所在节点”上监听的端点。
+  TunnelEndpoint listen = 4;
+
+  // 在 target_node_id 节点上需要 dial 的目标端点。
+  TunnelEndpoint target = 5;
+}
+
+message RemoteListenResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+service ElectionService {
+  // 主备节点间：双向流心跳（每条连接 1 个流）。
+  rpc Heartbeat(stream ElectionHeartbeat) returns (stream ElectionHeartbeat);
+}
+
+service ControlService {
+  // Master -> 全体节点：服务端流推送集群状态。
+  rpc SubscribeCluster(SubscribeRequest) returns (stream ClusterEvent);
+
+  // 手工指定：将目标备节点切换为 Master（SwitchType=MANUAL）。
+  rpc RequestManualElect(ManualElectRequest) returns (ManualElectResponse);
+}
+
+service TunnelService {
+  // 双向流，承载单个 tunnel 的字节流。
+  rpc OpenTunnel(stream TunnelFrame) returns (stream TunnelFrame);
+}

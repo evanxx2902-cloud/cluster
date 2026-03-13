@@ -1,0 +1,29 @@
+{
+  "cluster_id": "demo",
+  "self_node_id": "node-1",
+  "grpc_listen_addr": "127.0.0.1:50051",
+  "http_listen_addr": "127.0.0.1:8080",
+  "tls": {
+    "ca_file": "config/tls/ca.crt",
+    "cert_file": "config/tls/node-1.crt",
+    "key_file": "config/tls/node-1.key",
+    "server_name": "cluster"
+  },
+  "timing": {
+    "heartbeat_interval_ms": 500,
+    "election_timeout_ms": 2000
+  },
+  "nodes": [
+    { "node_id": "node-1", "addr": "127.0.0.1:50051", "priority": 120, "role_hint": "BACKUP" },
+    { "node_id": "node-2", "addr": "127.0.0.1:50052", "priority": 110, "role_hint": "BACKUP" },
+    { "node_id": "node-3", "addr": "127.0.0.1:50053", "priority": 100, "role_hint": "SLAVE" }
+  ],
+  "mappings": [
+    {
+      "direction": "FORWARD",
+      "remote_node_id": "node-2",
+      "local": { "network": "tcp", "address": "127.0.0.1:10080" },
+      "remote": { "network": "tcp", "address": "127.0.0.1:18080" }
+    }
+  ]
+}
